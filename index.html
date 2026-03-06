@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CS:GO Case Opening Simulator</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <header>
+      <h1>CS:GO CASE OPENING</h1>
+      <div class="balance">
+        Balance: $<span id="balance">1000.00</span>
+      </div>
+    </header>
+
+    <div class="case-select">
+      <h2>SELECT A CASE</h2>
+      <div class="cases" id="cases"></div>
+    </div>
+
+    <div class="opener-section" id="openerSection" style="display:none;">
+      <div class="selected-case-info">
+        <h2 id="selectedCaseName"></h2>
+        <p>Price: $<span id="selectedCasePrice"></span></p>
+      </div>
+
+      <div class="roulette-container">
+        <div class="roulette-marker"></div>
+        <div class="roulette-strip" id="rouletteStrip"></div>
+      </div>
+
+      <div class="controls">
+        <button id="openBtn" class="btn btn-open">OPEN CASE</button>
+        <button id="backBtn" class="btn btn-back">BACK</button>
+      </div>
+
+      <div class="won-item" id="wonItem" style="display:none;">
+        <h3>YOU UNBOXED</h3>
+        <div class="won-item-card" id="wonItemCard"></div>
+      </div>
+    </div>
+
+    <div class="inventory-section">
+      <h2>INVENTORY <span class="inv-value">Total Value: $<span id="invValue">0.00</span></span></h2>
+      <div class="inventory" id="inventory"></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

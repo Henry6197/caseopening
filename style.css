@@ -1,0 +1,498 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #1a1a2e;
+  color: #e0e0e0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  min-height: 100vh;
+}
+
+#app {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Header */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 25px;
+  background: linear-gradient(135deg, #16213e, #0f3460);
+  border-radius: 10px;
+  margin-bottom: 30px;
+  border: 1px solid #1a3a6a;
+}
+
+header h1 {
+  font-size: 1.8rem;
+  background: linear-gradient(90deg, #f5a623, #e8d44d);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 2px;
+}
+
+.balance {
+  font-size: 1.3rem;
+  color: #4ade80;
+  font-weight: bold;
+}
+
+/* Case Select */
+.case-select {
+  margin-bottom: 30px;
+}
+
+.case-select h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #a0aec0;
+  font-size: 1.1rem;
+  letter-spacing: 3px;
+}
+
+.cases {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 15px;
+}
+
+.case-card {
+  background: linear-gradient(145deg, #1e293b, #0f172a);
+  border: 2px solid #334155;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.case-card:hover {
+  border-color: #f5a623;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(245, 166, 35, 0.2);
+}
+
+.case-card .case-icon {
+  width: 160px;
+  height: 120px;
+  object-fit: contain;
+  margin-bottom: 10px;
+}
+
+.case-card .case-name {
+  font-weight: bold;
+  font-size: 1rem;
+  margin-bottom: 5px;
+}
+
+.case-card .case-price {
+  color: #f5a623;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+/* Roulette */
+.opener-section {
+  margin-bottom: 30px;
+}
+
+.selected-case-info {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.selected-case-info h2 {
+  color: #f5a623;
+  margin-bottom: 5px;
+}
+
+.selected-case-info p {
+  color: #94a3b8;
+}
+
+.roulette-container {
+  position: relative;
+  width: 100%;
+  height: 140px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #0f172a;
+  border: 2px solid #334155;
+  margin-bottom: 20px;
+}
+
+.roulette-marker {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 100%;
+  background: #f5a623;
+  z-index: 10;
+  box-shadow: 0 0 15px rgba(245, 166, 35, 0.6);
+}
+
+.roulette-marker::before,
+.roulette-marker::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+}
+
+.roulette-marker::before {
+  top: 0;
+  border-top: 14px solid #f5a623;
+}
+
+.roulette-marker::after {
+  bottom: 0;
+  border-bottom: 14px solid #f5a623;
+}
+
+.roulette-strip {
+  display: flex;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  transition: none;
+}
+
+.roulette-strip.spinning {
+  transition: transform cubic-bezier(0.15, 0.8, 0.3, 1);
+}
+
+.roulette-item {
+  flex-shrink: 0;
+  width: 140px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-right: 1px solid #1e293b;
+  padding: 8px;
+  text-align: center;
+}
+
+.roulette-item .item-icon {
+  width: 120px;
+  height: 70px;
+  object-fit: contain;
+  margin-bottom: 5px;
+}
+
+.roulette-item .item-name {
+  font-size: 0.7rem;
+  font-weight: bold;
+  line-height: 1.2;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.roulette-item .item-wear {
+  font-size: 0.65rem;
+  font-weight: bold;
+  margin-top: 1px;
+}
+
+.roulette-item .item-price {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  margin-top: 2px;
+}
+
+/* Rarity colors */
+.rarity-consumer { border-top: 3px solid #b0c3d9; }
+.rarity-consumer .item-name { color: #b0c3d9; }
+
+.rarity-industrial { border-top: 3px solid #5e98d9; }
+.rarity-industrial .item-name { color: #5e98d9; }
+
+.rarity-milspec { border-top: 3px solid #4b69ff; }
+.rarity-milspec .item-name { color: #4b69ff; }
+
+.rarity-restricted { border-top: 3px solid #8847ff; }
+.rarity-restricted .item-name { color: #8847ff; }
+
+.rarity-classified { border-top: 3px solid #d32ce6; }
+.rarity-classified .item-name { color: #d32ce6; }
+
+.rarity-covert { border-top: 3px solid #eb4b4b; }
+.rarity-covert .item-name { color: #eb4b4b; }
+
+.rarity-gold { border-top: 3px solid #ffd700; }
+.rarity-gold .item-name { color: #ffd700; }
+
+/* Buttons */
+.controls {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.btn {
+  padding: 12px 35px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: all 0.2s;
+}
+
+.btn-open {
+  background: linear-gradient(135deg, #f5a623, #e8951a);
+  color: #0f172a;
+}
+
+.btn-open:hover {
+  transform: scale(1.05);
+  box-shadow: 0 5px 20px rgba(245, 166, 35, 0.4);
+}
+
+.btn-open:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-back {
+  background: #334155;
+  color: #e0e0e0;
+}
+
+.btn-back:hover {
+  background: #475569;
+}
+
+/* Won Item */
+.won-item {
+  text-align: center;
+  animation: fadeIn 0.5s ease;
+}
+
+.won-item h3 {
+  font-size: 1.2rem;
+  color: #94a3b8;
+  margin-bottom: 10px;
+  letter-spacing: 2px;
+}
+
+.won-item-card {
+  display: inline-block;
+  padding: 20px 40px;
+  border-radius: 12px;
+  background: #1e293b;
+  border: 2px solid #334155;
+}
+
+.won-item-card .item-icon {
+  width: 256px;
+  height: 160px;
+  object-fit: contain;
+  margin-bottom: 8px;
+}
+
+.won-item-card .item-name {
+  font-weight: bold;
+  font-size: 1.1rem;
+  margin-bottom: 4px;
+}
+
+.won-item-card .won-wear {
+  font-size: 0.9rem;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+.won-item-card .won-details {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  font-size: 0.8rem;
+  color: #94a3b8;
+  margin: 6px 0;
+  font-family: 'Courier New', monospace;
+}
+
+.won-item-card .item-price {
+  font-size: 1rem;
+}
+
+/* Inventory */
+.inventory-section {
+  margin-top: 10px;
+}
+
+.inventory-section h2 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  color: #a0aec0;
+  font-size: 1.1rem;
+  letter-spacing: 2px;
+}
+
+.inv-value {
+  font-size: 0.9rem;
+  color: #4ade80;
+}
+
+.inventory {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+  min-height: 60px;
+}
+
+.inventory .inv-item {
+  background: #1e293b;
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+  border: 1px solid #334155;
+  transition: all 0.2s;
+  cursor: pointer;
+  position: relative;
+}
+
+.inventory .inv-item:hover {
+  border-color: #4ade80;
+}
+
+.inventory .inv-item .item-icon {
+  width: 100%;
+  height: 70px;
+  object-fit: contain;
+  margin-bottom: 5px;
+}
+
+.inventory .inv-item .item-name {
+  font-size: 0.75rem;
+  font-weight: bold;
+  line-height: 1.2;
+}
+
+.inventory .inv-item .inv-wear {
+  font-size: 0.65rem;
+  font-weight: bold;
+  margin-top: 2px;
+  font-family: 'Courier New', monospace;
+}
+
+.inventory .inv-item .inv-pattern {
+  font-size: 0.6rem;
+  color: #64748b;
+  margin-top: 1px;
+}
+
+.inventory .inv-item .item-price {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  margin-top: 3px;
+}
+
+.inv-item .sell-btn {
+  display: none;
+  position: absolute;
+  bottom: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #4ade80;
+  color: #0f172a;
+  border: none;
+  padding: 3px 12px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.inv-item:hover .sell-btn {
+  display: block;
+}
+
+.sell-btn:hover {
+  background: #22c55e;
+}
+
+.inventory-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: #475569;
+  padding: 30px;
+  font-style: italic;
+}
+
+/* Float bar */
+.float-bar {
+  position: relative;
+  width: 100%;
+  display: flex;
+  border-radius: 3px;
+  overflow: hidden;
+  margin: 4px 0;
+}
+
+.float-bar-segment {
+  height: 100%;
+}
+
+.float-bar-marker {
+  position: absolute;
+  top: -2px;
+  width: 2px;
+  height: calc(100% + 4px);
+  background: #fff;
+  border-radius: 1px;
+  box-shadow: 0 0 4px rgba(255,255,255,0.8);
+  transform: translateX(-50%);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  header {
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+  }
+
+  header h1 {
+    font-size: 1.3rem;
+  }
+
+  .roulette-item {
+    width: 110px;
+  }
+
+  .cases {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+}
