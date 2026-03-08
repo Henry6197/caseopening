@@ -4,9 +4,9 @@ const RARITIES = {
   consumer:   { label: 'Consumer Grade', color: '#b0c3d9', weight: 50 },
   industrial: { label: 'Industrial Grade', color: '#5e98d9', weight: 25 },
   milspec:    { label: 'Mil-Spec',        color: '#4b69ff', weight: 15 },
-  restricted: { label: 'Restricted',      color: '#8847ff', weight: 6  },
-  classified: { label: 'Classified',      color: '#d32ce6', weight: 3  },
-  covert:     { label: 'Covert',          color: '#eb4b4b', weight: 0.8},
+  restricted: { label: 'Restricted',      color: '#8847ff', weight: 3.27},
+  classified: { label: 'Classified',      color: '#d32ce6', weight: 3.27},
+  covert:     { label: 'Covert',          color: '#eb4b4b', weight: 3.27},
   gold:       { label: '★ Rare Special',  color: '#ffd700', weight: 0.2},
 };
 
