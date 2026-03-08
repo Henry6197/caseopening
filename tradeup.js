@@ -1,4 +1,4 @@
-// ─── Skin Data ───────────────────────────────────────────────
+// ─── Shared Data (must match app.js) ─────────────────────────
 
 const RARITIES = {
   consumer:   { label: 'Consumer Grade', color: '#b0c3d9', weight: 50 },
@@ -12,8 +12,6 @@ const RARITIES = {
 
 const RARITY_ORDER = ['consumer', 'industrial', 'milspec', 'restricted', 'classified', 'covert', 'gold'];
 
-// ─── Float / Wear System ──────────────────────────────────────
-
 const WEAR_TIERS = [
   { name: 'Factory New',    abbr: 'FN', min: 0.00, max: 0.07, color: '#4ade80', multiplier: 2.0  },
   { name: 'Minimal Wear',  abbr: 'MW', min: 0.07, max: 0.15, color: '#60a5fa', multiplier: 1.5  },
@@ -22,60 +20,13 @@ const WEAR_TIERS = [
   { name: 'Battle-Scarred', abbr: 'BS', min: 0.45, max: 1.00, color: '#ef4444', multiplier: 0.3 },
 ];
 
-// Weighted float distribution — FT is most common, FN is rarest
 const WEAR_WEIGHTS = [
-  { tier: 0, weight: 3  }, // FN  ≈ 3%
-  { tier: 1, weight: 24 }, // MW  ≈ 24%
-  { tier: 2, weight: 33 }, // FT  ≈ 33%
-  { tier: 3, weight: 24 }, // WW  ≈ 24%
-  { tier: 4, weight: 16 }, // BS  ≈ 16%
+  { tier: 0, weight: 3  },
+  { tier: 1, weight: 24 },
+  { tier: 2, weight: 33 },
+  { tier: 3, weight: 24 },
+  { tier: 4, weight: 16 },
 ];
-
-function rollFloat() {
-  const totalWeight = WEAR_WEIGHTS.reduce((s, w) => s + w.weight, 0);
-  let rand = Math.random() * totalWeight;
-  let tierIdx = 2; // default FT
-  for (const w of WEAR_WEIGHTS) {
-    rand -= w.weight;
-    if (rand <= 0) { tierIdx = w.tier; break; }
-  }
-  const tier = WEAR_TIERS[tierIdx];
-  const float = tier.min + Math.random() * (tier.max - tier.min);
-  return { float: Math.round(float * 10000) / 10000, tier };
-}
-
-function rollPattern() {
-  return Math.floor(Math.random() * 1000) + 1;
-}
-
-function applyFloat(baseItem) {
-  const { float, tier } = rollFloat();
-  const pattern = rollPattern();
-  const adjustedPrice = Math.round(baseItem.price * tier.multiplier * 100) / 100;
-  return {
-    ...baseItem,
-    float,
-    wear: tier.name,
-    wearAbbr: tier.abbr,
-    wearColor: tier.color,
-    pattern,
-    price: adjustedPrice,
-    basePrice: baseItem.price,
-  };
-}
-
-function floatBarHTML(float, small) {
-  const pct = (float * 100).toFixed(1);
-  const h = small ? 4 : 6;
-  return `<div class="float-bar" style="height:${h}px">
-    <div class="float-bar-segment" style="background:#4ade80;width:7%"></div>
-    <div class="float-bar-segment" style="background:#60a5fa;width:8%"></div>
-    <div class="float-bar-segment" style="background:#fbbf24;width:23%"></div>
-    <div class="float-bar-segment" style="background:#f97316;width:7%"></div>
-    <div class="float-bar-segment" style="background:#ef4444;width:55%"></div>
-    <div class="float-bar-marker" style="left:${pct}%"></div>
-  </div>`;
-}
 
 const S = 'https://community.akamai.steamstatic.com/economy/image/';
 
@@ -85,11 +36,6 @@ const GLOVE_CASES = ['Glove Case','Operation Hydra Case','Clutch Case','Operatio
 
 function isGloveItem(item) {
   return item.rarity === 'gold' && /Glove|Wraps/.test(item.name);
-}
-
-function rollStatTrak(item, caseName) {
-  if (isGloveItem(item)) return false;
-  return Math.random() < STATTRAK_CHANCE;
 }
 
 function stName(item) {
@@ -2900,279 +2846,87 @@ const CASES = [
     ]
   },
 ];
-// ─── State ────────────────────────────────────────────────────
+// ─── Float helpers ────────────────────────────────────────────
+
+function rollFloat() {
+  const totalWeight = WEAR_WEIGHTS.reduce((s, w) => s + w.weight, 0);
+  let rand = Math.random() * totalWeight;
+  let tierIdx = 2;
+  for (const w of WEAR_WEIGHTS) {
+    rand -= w.weight;
+    if (rand <= 0) { tierIdx = w.tier; break; }
+  }
+  const tier = WEAR_TIERS[tierIdx];
+  const float = tier.min + Math.random() * (tier.max - tier.min);
+  return { float: Math.round(float * 10000) / 10000, tier };
+}
+
+function rollPattern() {
+  return Math.floor(Math.random() * 1000) + 1;
+}
+
+function applyFloat(baseItem) {
+  const { float, tier } = rollFloat();
+  const pattern = rollPattern();
+  const adjustedPrice = Math.round(baseItem.price * tier.multiplier * 100) / 100;
+  return {
+    ...baseItem,
+    float,
+    wear: tier.name,
+    wearAbbr: tier.abbr,
+    wearColor: tier.color,
+    pattern,
+    price: adjustedPrice,
+    basePrice: baseItem.price,
+  };
+}
+
+function floatBarHTML(float, small) {
+  const pct = (float * 100).toFixed(1);
+  const h = small ? 4 : 6;
+  return `<div class="float-bar" style="height:${h}px">
+    <div class="float-bar-segment" style="background:#4ade80;width:7%"></div>
+    <div class="float-bar-segment" style="background:#60a5fa;width:8%"></div>
+    <div class="float-bar-segment" style="background:#fbbf24;width:23%"></div>
+    <div class="float-bar-segment" style="background:#f97316;width:7%"></div>
+    <div class="float-bar-segment" style="background:#ef4444;width:55%"></div>
+    <div class="float-bar-marker" style="left:${pct}%"></div>
+  </div>`;
+}
+
+// ─── State (shared via localStorage) ──────────────────────────
 
 let balance = JSON.parse(localStorage.getItem('balance')) ?? 1000;
 let inventory = JSON.parse(localStorage.getItem('inventory')) ?? [];
-let selectedCase = null;
-let isSpinning = false;
-let stats = JSON.parse(localStorage.getItem('stats')) ?? { spent: 0, earned: 0, opened: 0 };
+let tradeupSlots = []; // items selected for trade-up (indices into inventory)
+let tradeupRarity = null; // locked rarity once first item is added
+let tradeupStattrak = null; // locked stattrak status once first item is added
 
 function saveState() {
   localStorage.setItem('balance', JSON.stringify(balance));
   localStorage.setItem('inventory', JSON.stringify(inventory));
-  localStorage.setItem('stats', JSON.stringify(stats));
 }
 
 // ─── DOM refs ─────────────────────────────────────────────────
 
-const balanceEl       = document.getElementById('balance');
-const invValueEl      = document.getElementById('invValue');
-const casesEl         = document.getElementById('cases');
-const openerSection   = document.getElementById('openerSection');
-const selectedNameEl  = document.getElementById('selectedCaseName');
-const selectedPriceEl = document.getElementById('selectedCasePrice');
-const rouletteStrip   = document.getElementById('rouletteStrip');
-const openBtn         = document.getElementById('openBtn');
-const backBtn         = document.getElementById('backBtn');
-const wonItemEl       = document.getElementById('wonItem');
-const wonItemCard     = document.getElementById('wonItemCard');
-const caseSearchEl    = document.getElementById('caseSearch');
+const balanceEl         = document.getElementById('balance');
+const inventoryEl       = document.getElementById('inventory');
+const invValueEl        = document.getElementById('invValue');
+const invValueInlineEl  = document.getElementById('invValueInline');
+const tradeupSlotsEl    = document.getElementById('tradeupSlots');
+const tradeupCountEl    = document.getElementById('tradeupCount');
+const tradeupRarityEl   = document.getElementById('tradeupRarity');
+const tradeupBtn        = document.getElementById('tradeupBtn');
+const tradeupClearBtn   = document.getElementById('tradeupClearBtn');
+const tradeupResultEl   = document.getElementById('tradeupResult');
+const tradeupResultCard = document.getElementById('tradeupResultCard');
+const tradeupOutputRar  = document.getElementById('tradeupOutputRarity');
 
-// ─── Render Cases (index.html only) ───────────────────────────
-
-if (casesEl) {
-  function renderCases(filter = '') {
-    casesEl.innerHTML = '';
-    const q = filter.toLowerCase();
-    CASES.forEach((c, idx) => {
-      if (q && !c.name.toLowerCase().includes(q)) return;
-      const card = document.createElement('div');
-      card.className = 'case-card';
-      card.innerHTML = `
-        <img class="case-icon" src="${c.image}" alt="${c.name}">
-        <div class="case-name">${c.name}</div>
-        <div class="case-price">$${c.price.toFixed(2)}</div>
-      `;
-      card.addEventListener('click', () => selectCase(idx));
-      casesEl.appendChild(card);
-    });
-  }
-
-  caseSearchEl.addEventListener('input', () => renderCases(caseSearchEl.value));
-
-  function selectCase(idx) {
-    selectedCase = CASES[idx];
-    document.querySelector('.case-select').style.display = 'none';
-    openerSection.style.display = 'block';
-    selectedNameEl.textContent = selectedCase.name;
-    selectedPriceEl.textContent = selectedCase.price.toFixed(2);
-    wonItemEl.style.display = 'none';
-    rouletteStrip.innerHTML = '';
-    rouletteStrip.style.transform = 'translateX(0)';
-  }
-
-  backBtn.addEventListener('click', () => {
-    if (isSpinning) return;
-    openerSection.style.display = 'none';
-    document.querySelector('.case-select').style.display = 'block';
-    selectedCase = null;
-  });
-
-// ─── Weighted Random Pick ─────────────────────────────────────
-
-function pickItem(caseData) {
-  // Count items per rarity so each rarity keeps its intended total weight
-  const rarityCounts = {};
-  caseData.items.forEach(item => {
-    rarityCounts[item.rarity] = (rarityCounts[item.rarity] || 0) + 1;
-  });
-
-  // Build weighted pool — split rarity weight evenly among its items
-  const pool = [];
-  caseData.items.forEach(item => {
-    const w = RARITIES[item.rarity].weight / rarityCounts[item.rarity];
-    pool.push({ item, weight: w });
-  });
-
-  // Normalize: sum up all weights, pick randomly
-  const totalWeight = pool.reduce((sum, p) => sum + p.weight, 0);
-  let rand = Math.random() * totalWeight;
-  for (const p of pool) {
-    rand -= p.weight;
-    if (rand <= 0) return p.item;
-  }
-  return pool[pool.length - 1].item;
-}
-
-// ─── Build Roulette Strip ─────────────────────────────────────
-
-function buildStrip(winItem) {
-  const ITEM_WIDTH = 140;
-  const TOTAL_ITEMS = 70;
-  const WIN_INDEX = 55; // where the winning item sits
-
-  rouletteStrip.innerHTML = '';
-  rouletteStrip.classList.remove('spinning');
-  rouletteStrip.style.transform = 'translateX(0)';
-
-  for (let i = 0; i < TOTAL_ITEMS; i++) {
-    let item;
-    if (i === WIN_INDEX) {
-      item = winItem;
-    } else {
-      item = applyFloat(pickItem(selectedCase));
-    }
-
-    // Roll stattrak for non-winning roulette items too
-    if (i !== WIN_INDEX) {
-      item.stattrak = rollStatTrak(item, selectedCase.name);
-    }
-
-    const el = document.createElement('div');
-    el.className = `roulette-item rarity-${item.rarity}`;
-    if (item.rarity === 'gold') {
-      el.innerHTML = `
-        <img class="item-icon" src="gold.jpg" alt="★ Rare Special ★">
-        <div class="item-name" style="color:#ffd700">★ Rare Special ★</div>
-      `;
-      el.dataset.goldImage = item.image;
-      el.dataset.goldName = stName(item);
-      el.dataset.goldWear = item.wearAbbr;
-      el.dataset.goldWearColor = item.wearColor;
-      el.dataset.goldSt = item.stattrak ? '1' : '';
-    } else {
-      el.innerHTML = `
-        ${item.stattrak ? '<div class="stattrak-badge">StatTrak\u2122</div>' : ''}
-        <img class="item-icon" src="${item.image}" alt="${stName(item)}">
-        <div class="item-name">${stName(item)}</div>
-        <div class="item-wear" style="color:${item.wearColor}">${item.wearAbbr}</div>
-      `;
-    }
-    rouletteStrip.appendChild(el);
-  }
-
-  return { ITEM_WIDTH, WIN_INDEX };
-}
-
-// ─── Open Case ────────────────────────────────────────────────
-
-openBtn.addEventListener('click', () => {
-  if (isSpinning || !selectedCase) return;
-  if (balance < selectedCase.price) {
-    alert('Not enough balance!');
-    return;
-  }
-
-  isSpinning = true;
-  openBtn.disabled = true;
-  wonItemEl.style.display = 'none';
-
-  balance -= selectedCase.price;
-  stats.spent += selectedCase.price;
-  stats.opened++;
-  updateBalance();
-
-  const winItem = applyFloat(pickItem(selectedCase));
-  winItem.caseName = selectedCase.name;
-  winItem.stattrak = rollStatTrak(winItem, selectedCase.name);
-  if (winItem.stattrak) winItem.price = Math.round(winItem.price * STATTRAK_MULTIPLIER * 100) / 100;
-  const { ITEM_WIDTH, WIN_INDEX } = buildStrip(winItem);
-
-  // Calculate offset: center the winning item under the marker
-  const containerWidth = document.querySelector('.roulette-container').offsetWidth;
-  const centerOffset = containerWidth / 2 - ITEM_WIDTH / 2;
-  // Add a small random offset within the item so it doesn't always land dead center
-  const randomNudge = (Math.random() - 0.5) * (ITEM_WIDTH * 0.6);
-  const targetX = -(WIN_INDEX * ITEM_WIDTH) + centerOffset + randomNudge;
-
-  // Spin duration
-  const duration = 5000 + Math.random() * 1500;
-
-  // Force reflow then animate
-  void rouletteStrip.offsetHeight;
-  rouletteStrip.classList.add('spinning');
-  rouletteStrip.style.transitionDuration = `${duration}ms`;
-  rouletteStrip.style.transform = `translateX(${targetX}px)`;
-
-  // Play tick sounds during spin
-  playTicksDuring(duration);
-
-  setTimeout(() => {
-    isSpinning = false;
-    openBtn.disabled = false;
-    rouletteStrip.classList.remove('spinning');
-
-    // Reveal real gold item in roulette strip after spin
-    const winEl = rouletteStrip.children[55];
-    if (winItem.rarity === 'gold' && winEl && winEl.dataset.goldImage) {
-      winEl.innerHTML = `
-        ${winEl.dataset.goldSt ? '<div class="stattrak-badge">StatTrak\u2122</div>' : ''}
-        <img class="item-icon" src="${winEl.dataset.goldImage}" alt="${winEl.dataset.goldName}">
-        <div class="item-name">${winEl.dataset.goldName}</div>
-        <div class="item-wear" style="color:${winEl.dataset.goldWearColor}">${winEl.dataset.goldWear}</div>
-      `;
-    }
-
-    wonItemEl.style.display = 'block';
-    wonItemCard.className = `won-item-card rarity-${winItem.rarity}`;
-    wonItemCard.innerHTML = `
-      ${winItem.stattrak ? '<div class="stattrak-label">StatTrak\u2122</div>' : ''}
-      <img class="item-icon" src="${winItem.image}" alt="${stName(winItem)}">
-      <div class="item-name" style="color:${RARITIES[winItem.rarity].color}">${stName(winItem)}</div>
-      <div class="won-wear" style="color:${winItem.wearColor}">${winItem.wear}</div>
-      ${floatBarHTML(winItem.float, false)}
-      <div class="won-details">
-        <span>Float: ${winItem.float.toFixed(4)}</span>
-        <span>Pattern: #${winItem.pattern}</span>
-      </div>
-      <div class="item-price" style="color:${RARITIES[winItem.rarity].color}">$${winItem.price.toFixed(2)}</div>
-      <div style="color:#64748b;font-size:0.7rem;margin-top:2px">${RARITIES[winItem.rarity].label}</div>
-    `;
-
-    // Add to inventory & track earnings
-    inventory.push(winItem);
-    stats.earned += winItem.price;
-    updateHeaderInvValue();
-    updatePLDisplay();
-    saveState();
-  }, duration + 200);
-});
-
-// ─── Audio Ticks (Web Audio API) ──────────────────────────────
-
-let audioCtx = null;
-
-function playTick() {
-  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  const osc = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
-  osc.type = 'sine';
-  osc.frequency.value = 800 + Math.random() * 400;
-  gain.gain.value = 0.08;
-  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
-  osc.connect(gain);
-  gain.connect(audioCtx.destination);
-  osc.start();
-  osc.stop(audioCtx.currentTime + 0.05);
-}
-
-function playTicksDuring(duration) {
-  const startTime = performance.now();
-  let tickInterval = 30;
-
-  function tick() {
-    const elapsed = performance.now() - startTime;
-    if (elapsed > duration - 300) return;
-
-    playTick();
-
-    // Slow down ticks as spin decelerates
-    const progress = elapsed / duration;
-    tickInterval = 30 + progress * 250;
-    setTimeout(tick, tickInterval);
-  }
-  tick();
-}
-
-} // end if (casesEl) — case opening page only
-
-// ─── Balance & Inventory ──────────────────────────────────────
+// ─── Balance ──────────────────────────────────────────────────
 
 function updateBalance() {
   balanceEl.textContent = balance.toFixed(2);
   updateHeaderInvValue();
-  saveState();
 }
 
 // ─── Balance Add Popup ────────────────────────────────────────
@@ -3198,6 +2952,7 @@ function updateBalance() {
         ev.stopPropagation();
         balance += amt;
         updateBalance();
+        saveState();
         close();
       });
       popup.appendChild(btn);
@@ -3209,13 +2964,341 @@ function updateBalance() {
 })();
 
 function updateHeaderInvValue() {
-  if (invValueEl) {
-    const totalValue = inventory.reduce((s, i) => s + (i.price || 0), 0);
-    invValueEl.textContent = totalValue.toFixed(2);
+  const total = inventory.reduce((s, i) => s + (i.price || 0), 0);
+  if (invValueEl) invValueEl.textContent = total.toFixed(2);
+}
+
+// ─── Trade-Up Logic ───────────────────────────────────────────
+
+function getNextRarity(rarity) {
+  const idx = RARITY_ORDER.indexOf(rarity);
+  if (idx < 0 || idx >= RARITY_ORDER.length - 1) return null;
+  return RARITY_ORDER[idx + 1];
+}
+
+function canTradeUp(item) {
+  // Can't trade up gold — it's the highest tier.
+  if (item.rarity === 'gold') return false;
+  // StatTrak covert from glove cases can't trade up (next tier = gloves, which can't be StatTrak)
+  if (item.stattrak && item.rarity === 'covert' && GLOVE_CASES.includes(item.caseName)) return false;
+  return true;
+}
+
+function getRequiredCount(rarity) {
+  return rarity === 'covert' ? 5 : 10;
+}
+
+function addToTradeup(invIdx) {
+  const item = inventory[invIdx];
+  if (!item) return;
+
+  if (!canTradeUp(item)) return;
+
+  // Lock rarity and stattrak status on first item
+  if (tradeupSlots.length === 0) {
+    tradeupRarity = item.rarity;
+    tradeupStattrak = !!item.stattrak;
+  } else {
+    if (item.rarity !== tradeupRarity) return;
+    if (!!item.stattrak !== tradeupStattrak) return;
+  }
+
+  const maxSlots = getRequiredCount(tradeupRarity);
+  if (tradeupSlots.length >= maxSlots) return;
+
+  // Don't add same inventory index twice
+  if (tradeupSlots.includes(invIdx)) return;
+
+  tradeupSlots.push(invIdx);
+  rebuildSlotElements();
+  renderTradeupSlots();
+  renderInventory();
+  updateTradeupUI();
+}
+
+function removeFromTradeup(slotIdx) {
+  tradeupSlots.splice(slotIdx, 1);
+  if (tradeupSlots.length === 0) { tradeupRarity = null; tradeupStattrak = null; }
+  renderTradeupSlots();
+  renderInventory();
+  updateTradeupUI();
+}
+
+function clearTradeup() {
+  tradeupSlots = [];
+  tradeupRarity = null;
+  tradeupStattrak = null;
+  tradeupResultEl.style.display = 'none';
+  rebuildSlotElements();
+  renderTradeupSlots();
+  renderInventory();
+  updateTradeupUI();
+}
+
+function rebuildSlotElements() {
+  const count = tradeupRarity ? getRequiredCount(tradeupRarity) : 10;
+  tradeupSlotsEl.innerHTML = '';
+  for (let i = 0; i < count; i++) {
+    const slot = document.createElement('div');
+    slot.className = 'tradeup-slot empty';
+    slot.dataset.slot = i;
+    tradeupSlotsEl.appendChild(slot);
   }
 }
 
+function updateTradeupUI() {
+  const required = tradeupRarity ? getRequiredCount(tradeupRarity) : 10;
+  tradeupCountEl.textContent = tradeupSlots.length;
+  document.getElementById('tradeupRequired').textContent = required;
+  tradeupBtn.disabled = tradeupSlots.length < required;
+
+  if (tradeupRarity) {
+    const nextRarity = getNextRarity(tradeupRarity);
+    tradeupRarityEl.textContent = `(${RARITIES[tradeupRarity].label})`;
+    tradeupRarityEl.style.color = RARITIES[tradeupRarity].color;
+    if (nextRarity) {
+      tradeupOutputRar.textContent = RARITIES[nextRarity].label;
+      tradeupOutputRar.style.color = RARITIES[nextRarity].color;
+    }
+  } else {
+    tradeupRarityEl.textContent = '';
+    tradeupOutputRar.textContent = '—';
+    tradeupOutputRar.style.color = '';
+  }
+}
+
+function renderTradeupSlots() {
+  const slots = tradeupSlotsEl.querySelectorAll('.tradeup-slot');
+  slots.forEach((slot, i) => {
+    if (i < tradeupSlots.length) {
+      const item = inventory[tradeupSlots[i]];
+      slot.className = `tradeup-slot filled rarity-${item.rarity}`;
+      slot.innerHTML = `
+        <span class="slot-remove">✕</span>
+        ${item.stattrak ? '<div class="stattrak-badge">ST</div>' : ''}
+        <img class="slot-img" src="${item.image}" alt="${stName(item)}">
+        <div class="slot-name" style="color:${RARITIES[item.rarity].color}">${stName(item)}</div>
+        <div class="slot-wear" style="color:${item.wearColor}">${item.wearAbbr}</div>
+      `;
+      slot.onclick = () => removeFromTradeup(i);
+    } else {
+      slot.className = 'tradeup-slot empty';
+      slot.innerHTML = '';
+      slot.onclick = null;
+    }
+  });
+}
+
+function getOutputPool(nextRarity) {
+  // Collect case names from input items
+  const inputCaseNames = new Set();
+  for (const idx of tradeupSlots) {
+    const item = inventory[idx];
+    if (item.caseName) inputCaseNames.add(item.caseName);
+  }
+
+  // Filter output items to only those from matching cases
+  const pool = [];
+  for (const c of CASES) {
+    if (inputCaseNames.size === 0 || inputCaseNames.has(c.name)) {
+      for (const item of c.items) {
+        if (item.rarity === nextRarity) {
+          // StatTrak trade-ups can't produce gloves
+          if (tradeupStattrak && isGloveItem(item)) continue;
+          pool.push(item);
+        }
+      }
+    }
+  }
+
+  // Fallback: if no matching items found (e.g. old inventory without caseName), use all
+  if (pool.length === 0) {
+    for (const c of CASES) {
+      for (const item of c.items) {
+        if (item.rarity === nextRarity) {
+          if (tradeupStattrak && isGloveItem(item)) continue;
+          pool.push(item);
+        }
+      }
+    }
+  }
+
+  return pool;
+}
+
+function executeTradeup() {
+  const required = tradeupRarity ? getRequiredCount(tradeupRarity) : 10;
+  if (tradeupSlots.length < required || !tradeupRarity) return;
+
+  const nextRarity = getNextRarity(tradeupRarity);
+  if (!nextRarity) return;
+
+  const outputPool = getOutputPool(nextRarity);
+  if (outputPool.length === 0) return;
+
+  // Pick a random item from the pool and apply float
+  const baseItem = outputPool[Math.floor(Math.random() * outputPool.length)];
+
+  // Trade-up float is influenced by input floats (average of input floats)
+  const avgFloat = tradeupSlots.reduce((sum, idx) => sum + inventory[idx].float, 0) / tradeupSlots.length;
+
+  const { tier } = rollFloat();
+  const pattern = rollPattern();
+
+  // Bias the output float toward the average input float
+  const outputFloat = Math.min(Math.max(avgFloat + (Math.random() - 0.5) * 0.2, 0.0001), 0.9999);
+  const roundedFloat = Math.round(outputFloat * 10000) / 10000;
+
+  // Determine wear tier from float
+  let outputTier = WEAR_TIERS[2]; // default FT
+  for (const t of WEAR_TIERS) {
+    if (roundedFloat >= t.min && roundedFloat < t.max) {
+      outputTier = t;
+      break;
+    }
+  }
+
+  const adjustedPrice = Math.round(baseItem.price * outputTier.multiplier * 100) / 100;
+
+  const wonItem = {
+    ...baseItem,
+    float: roundedFloat,
+    wear: outputTier.name,
+    wearAbbr: outputTier.abbr,
+    wearColor: outputTier.color,
+    pattern,
+    price: adjustedPrice,
+    basePrice: baseItem.price,
+    stattrak: !!tradeupStattrak,
+  };
+  if (wonItem.stattrak) wonItem.price = Math.round(wonItem.price * STATTRAK_MULTIPLIER * 100) / 100;
+
+  // Remove input items from inventory (sort indices descending to avoid shifting)
+  const sortedIndices = [...tradeupSlots].sort((a, b) => b - a);
+  for (const idx of sortedIndices) {
+    inventory.splice(idx, 1);
+  }
+
+  // Add result
+  inventory.push(wonItem);
+  saveState();
+
+  // Show result
+  tradeupResultEl.style.display = 'block';
+  tradeupResultCard.className = `won-item-card rarity-${wonItem.rarity}`;
+  tradeupResultCard.innerHTML = `
+    ${wonItem.stattrak ? '<div class="stattrak-label">StatTrak\u2122</div>' : ''}
+    <img class="item-icon" src="${wonItem.image}" alt="${stName(wonItem)}">
+    <div class="item-name" style="color:${RARITIES[wonItem.rarity].color}">${stName(wonItem)}</div>
+    <div class="won-wear" style="color:${wonItem.wearColor}">${wonItem.wear}</div>
+    ${floatBarHTML(wonItem.float, false)}
+    <div class="won-details">
+      <span>Float: ${wonItem.float.toFixed(4)}</span>
+      <span>Pattern: #${wonItem.pattern}</span>
+    </div>
+    <div class="item-price" style="color:${RARITIES[wonItem.rarity].color}">$${wonItem.price.toFixed(2)}</div>
+    <div style="color:#64748b;font-size:0.7rem;margin-top:2px">${RARITIES[wonItem.rarity].label}</div>
+  `;
+
+  // Reset trade-up state
+  tradeupSlots = [];
+  tradeupRarity = null;
+  tradeupStattrak = null;
+  renderTradeupSlots();
+  renderInventory();
+  updateTradeupUI();
+}
+
+// ─── Inventory Rendering (trade-up version) ───────────────────
+
+function renderInventory() {
+  inventoryEl.innerHTML = '';
+  if (inventory.length === 0) {
+    inventoryEl.innerHTML = '<div class="inventory-empty">Your inventory is empty. Open some cases first!</div>';
+    if (invValueInlineEl) invValueInlineEl.textContent = '0.00';
+    if (invValueEl) invValueEl.textContent = '0.00';
+    return;
+  }
+
+  const totalValue = inventory.reduce((s, i) => s + (i.price || 0), 0);
+  if (invValueInlineEl) invValueInlineEl.textContent = totalValue.toFixed(2);
+  if (invValueEl) invValueEl.textContent = totalValue.toFixed(2);
+
+  const sorted = getSortedInventory();
+  sorted.forEach(({ item, realIdx }) => {
+    const inTradeup = tradeupSlots.includes(realIdx);
+    const maxSlots = tradeupRarity ? getRequiredCount(tradeupRarity) : 10;
+    const eligible = !inTradeup && canTradeUp(item) &&
+      (tradeupRarity === null || item.rarity === tradeupRarity) &&
+      (tradeupStattrak === null || !!item.stattrak === tradeupStattrak) &&
+      tradeupSlots.length < maxSlots;
+
+    const el = document.createElement('div');
+    el.className = `inv-item rarity-${item.rarity}${inTradeup ? ' in-tradeup' : ''}${eligible ? ' tradeup-eligible' : ''}`;
+    el.innerHTML = `
+      ${item.stattrak ? '<div class="stattrak-label">StatTrak\u2122</div>' : ''}
+      <img class="item-icon" src="${item.image}" alt="${stName(item)}">
+      <div class="item-name" style="color:${RARITIES[item.rarity].color}">${stName(item)}</div>
+      <div class="inv-wear" style="color:${item.wearColor}">${item.wearAbbr} · ${item.float.toFixed(4)}</div>
+      ${floatBarHTML(item.float, true)}
+      <div class="inv-pattern">Pattern #${item.pattern}</div>
+      <div class="item-price">$${item.price.toFixed(2)}</div>
+      ${inTradeup ? '<div class="in-tradeup-label">IN TRADE-UP</div>' : ''}
+    `;
+
+    if (eligible) {
+      el.addEventListener('click', () => addToTradeup(realIdx));
+      el.style.cursor = 'pointer';
+    }
+
+    inventoryEl.appendChild(el);
+  });
+}
+
+// ─── Sorting ──────────────────────────────────────────────────
+
+let currentSort = 'newest';
+const sortByEl = document.getElementById('sortBy');
+sortByEl.addEventListener('change', () => {
+  currentSort = sortByEl.value;
+  renderInventory();
+});
+
+function getSortedInventory() {
+  const indexed = inventory.map((item, i) => ({ item, realIdx: i }));
+  switch (currentSort) {
+    case 'rarity-desc':
+      indexed.sort((a, b) => RARITY_ORDER.indexOf(b.item.rarity) - RARITY_ORDER.indexOf(a.item.rarity));
+      break;
+    case 'rarity-asc':
+      indexed.sort((a, b) => RARITY_ORDER.indexOf(a.item.rarity) - RARITY_ORDER.indexOf(b.item.rarity));
+      break;
+    case 'float-asc':
+      indexed.sort((a, b) => a.item.float - b.item.float);
+      break;
+    case 'float-desc':
+      indexed.sort((a, b) => b.item.float - a.item.float);
+      break;
+    case 'price-desc':
+      indexed.sort((a, b) => b.item.price - a.item.price);
+      break;
+    case 'price-asc':
+      indexed.sort((a, b) => a.item.price - b.item.price);
+      break;
+    default: // newest
+      indexed.reverse();
+  }
+  return indexed;
+}
+
+// ─── Event Listeners ──────────────────────────────────────────
+
+tradeupBtn.addEventListener('click', executeTradeup);
+tradeupClearBtn.addEventListener('click', clearTradeup);
+
 // ─── Profit / Loss Display ────────────────────────────────────
+
+const stats = JSON.parse(localStorage.getItem('stats')) ?? { spent: 0, earned: 0, opened: 0 };
 
 function updatePLDisplay() {
   const el = document.getElementById('plTracker');
@@ -3232,7 +3315,9 @@ function updatePLDisplay() {
 
 // ─── Init ─────────────────────────────────────────────────────
 
-if (casesEl) renderCases();
 updateBalance();
-updateHeaderInvValue();
+rebuildSlotElements();
+renderTradeupSlots();
+renderInventory();
+updateTradeupUI();
 updatePLDisplay();

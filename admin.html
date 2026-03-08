@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Add Skins</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .admin-container { max-width: 900px; margin: 0 auto; padding: 20px; }
+    .admin-title { text-align: center; margin-bottom: 24px; color: #f5a623; }
+    .admin-row { display: flex; gap: 24px; flex-wrap: wrap; }
+    .admin-panel { flex: 1; min-width: 320px; background: #1e293b; border-radius: 12px; padding: 20px; }
+    .admin-panel h3 { color: #94a3b8; margin-bottom: 12px; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; }
+
+    .case-select-admin { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+    .case-btn { background: #0f172a; border: 1px solid #334155; color: #e2e8f0; padding: 8px 12px; border-radius: 6px; cursor: pointer; text-align: left; transition: border-color .2s; }
+    .case-btn:hover, .case-btn.active { border-color: #f5a623; color: #f5a623; }
+
+    .skin-list { display: flex; flex-direction: column; gap: 6px; max-height: 500px; overflow-y: auto; }
+    .skin-row { display: flex; align-items: center; gap: 10px; background: #0f172a; border-radius: 6px; padding: 6px 10px; cursor: pointer; border: 1px solid transparent; transition: border-color .2s; }
+    .skin-row:hover { border-color: #475569; }
+    .skin-row img { width: 48px; height: 36px; object-fit: contain; }
+    .skin-row .skin-info { flex: 1; }
+    .skin-row .skin-name { font-size: 0.82rem; color: #e2e8f0; }
+    .skin-row .skin-meta { font-size: 0.7rem; color: #64748b; }
+
+    .wear-select { display: flex; gap: 6px; margin: 12px 0; flex-wrap: wrap; }
+    .wear-btn { padding: 5px 10px; border-radius: 4px; border: 1px solid #334155; background: #0f172a; color: #e2e8f0; cursor: pointer; font-size: 0.75rem; transition: all .2s; }
+    .wear-btn:hover, .wear-btn.active { border-color: #f5a623; color: #f5a623; }
+
+    .add-btn { width: 100%; padding: 10px; background: linear-gradient(135deg, #f5a623, #e8d44d); color: #0f172a; border: none; border-radius: 8px; font-weight: 700; font-size: 0.9rem; cursor: pointer; margin-top: 12px; transition: opacity .2s; }
+    .add-btn:hover { opacity: 0.85; }
+    .add-btn:disabled { opacity: 0.4; cursor: default; }
+
+    .balance-edit { display: flex; gap: 8px; margin-top: 16px; }
+    .balance-edit input { flex: 1; background: #0f172a; border: 1px solid #334155; color: #e2e8f0; padding: 8px 12px; border-radius: 6px; font-size: 0.9rem; }
+    .balance-edit button { padding: 8px 16px; background: #4ade80; color: #0f172a; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; }
+
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #4ade80; color: #0f172a; padding: 10px 24px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; opacity: 0; transition: opacity .3s; pointer-events: none; z-index: 999; }
+    .toast.show { opacity: 1; }
+
+    .selected-preview { background: #0f172a; border-radius: 8px; padding: 12px; text-align: center; margin-top: 12px; min-height: 80px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+    .selected-preview img { width: 96px; height: 72px; object-fit: contain; }
+    .selected-preview .name { font-size: 0.85rem; }
+    .selected-preview .meta { font-size: 0.72rem; color: #64748b; }
+
+    #authOverlay { position: fixed; inset: 0; background: #0f172a; z-index: 10000; display: flex; align-items: center; justify-content: center; }
+    #authOverlay .auth-box { background: #1e293b; padding: 32px; border-radius: 12px; text-align: center; min-width: 300px; }
+    #authOverlay h2 { color: #f5a623; margin-bottom: 16px; }
+    #authOverlay input { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: #e2e8f0; font-size: 1rem; box-sizing: border-box; }
+    #authOverlay button { margin-top: 12px; padding: 10px 28px; background: #f5a623; color: #0f172a; border: none; border-radius: 6px; font-weight: 700; font-size: 1rem; cursor: pointer; }
+    #authOverlay .auth-err { color: #ef4444; font-size: 0.8rem; margin-top: 8px; min-height: 1.2em; }
+  </style>
+</head>
+<body>
+  <div id="authOverlay">
+    <div class="auth-box">
+      <h2>ADMIN ACCESS</h2>
+      <input type="password" id="authInput" placeholder="Enter password" autofocus>
+      <button id="authBtn">UNLOCK</button>
+      <div class="auth-err" id="authErr"></div>
+    </div>
+  </div>
+  <script>
+  (function(){
+    const H='e6bd2846b7f988dcf7bc48948557b72d5ec8b843a1979bb71be9ae919be0911a';
+    async function s256(m){const e=new TextEncoder().encode(m);const h=await crypto.subtle.digest('SHA-256',e);return Array.from(new Uint8Array(h)).map(b=>b.toString(16).padStart(2,'0')).join('');}
+    const inp=document.getElementById('authInput'),btn=document.getElementById('authBtn'),err=document.getElementById('authErr'),ov=document.getElementById('authOverlay');
+    async function check(){const v=inp.value;if(!v)return;const h=await s256(v);if(h===H){ov.remove();}else{err.textContent='Wrong password';inp.value='';inp.focus();}}
+    btn.addEventListener('click',check);
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter')check();});
+  })();
+  </script>
+
+  <div id="app">
+    <header>
+      <h1>CS:GO CASE OPENING</h1>
+      <nav class="header-nav">
+        <a href="index.html" class="nav-link">CASES</a>
+        <a href="tradeup.html" class="nav-link">TRADE UP</a>
+        <a href="inventory.html" class="nav-link">INVENTORY</a>
+      </nav>
+      <div class="balance-group">
+        <div class="balance">Balance: $<span id="balance">1000.00</span></div>
+        <div class="inv-value-header">Inventory: $<span id="invValue">0.00</span></div>
+      </div>
+    </header>
+
+    <div class="admin-container">
+      <h2 class="admin-title">ADMIN — ADD SKINS TO INVENTORY</h2>
+
+      <div class="admin-row">
+        <!-- Left: case & skin picker -->
+        <div class="admin-panel">
+          <h3>1. Pick a Case</h3>
+          <input type="text" id="adminCaseSearch" placeholder="Search cases..." style="width:100%;padding:6px 10px;margin-bottom:8px;background:#0f172a;border:1px solid #334155;border-radius:6px;color:#e2e8f0;font-size:0.85rem;outline:none;">
+          <div class="case-select-admin" id="caseButtons" style="max-height:200px;overflow-y:auto;"></div>
+
+          <h3>2. Pick a Skin</h3>
+          <div class="skin-list" id="skinList">
+            <div style="color:#64748b;font-size:0.8rem;">Select a case first</div>
+          </div>
+        </div>
+
+        <!-- Right: wear, preview, add -->
+        <div class="admin-panel">
+          <h3>3. Choose Wear</h3>
+          <div class="wear-select" id="wearButtons"></div>
+
+          <h3>Preview</h3>
+          <div class="selected-preview" id="preview">
+            <div style="color:#64748b;font-size:0.8rem;">No skin selected</div>
+          </div>
+
+          <label style="display:flex;align-items:center;gap:6px;margin:10px 0;color:#cf6a32;font-weight:600;cursor:pointer;">
+            <input type="checkbox" id="stattrakCheck"> StatTrak™
+          </label>
+
+          <button class="add-btn" id="addBtn" disabled>ADD TO INVENTORY</button>
+
+          <h3 style="margin-top:24px;">Set Balance</h3>
+          <div class="balance-edit">
+            <input type="number" id="balanceInput" placeholder="Enter amount" min="0" step="0.01">
+            <button id="setBalanceBtn">SET</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <script src="app.js"></script>
+  <script>
+    // ─── Admin Logic ──────────────────────────────────────────
+
+    const caseButtonsEl = document.getElementById('caseButtons');
+    const skinListEl = document.getElementById('skinList');
+    const wearButtonsEl = document.getElementById('wearButtons');
+    const previewEl = document.getElementById('preview');
+    const addBtn = document.getElementById('addBtn');
+    const toastEl = document.getElementById('toast');
+    const balanceInput = document.getElementById('balanceInput');
+    const setBalanceBtn = document.getElementById('setBalanceBtn');
+
+    let pickedSkin = null;
+    let pickedWearIdx = null;
+    const stattrakCheck = document.getElementById('stattrakCheck');
+
+    // ── Toast ──
+    function showToast(msg) {
+      toastEl.textContent = msg;
+      toastEl.classList.add('show');
+      setTimeout(() => toastEl.classList.remove('show'), 1800);
+    }
+
+    // ── Render case buttons ──
+    function renderAdminCases(filter = '') {
+      caseButtonsEl.innerHTML = '';
+      const q = filter.toLowerCase();
+      CASES.forEach((c, i) => {
+        if (q && !c.name.toLowerCase().includes(q)) return;
+        const btn = document.createElement('button');
+        btn.className = 'case-btn';
+        btn.textContent = c.name;
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.case-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          renderSkinList(i);
+          pickedSkin = null;
+          updatePreview();
+        });
+        caseButtonsEl.appendChild(btn);
+      });
+    }
+    renderAdminCases();
+    document.getElementById('adminCaseSearch').addEventListener('input', function() {
+      renderAdminCases(this.value);
+    });
+
+    // ── Render skins for a case ──
+    function renderSkinList(caseIdx) {
+      const items = CASES[caseIdx].items;
+      skinListEl.innerHTML = '';
+      items.forEach(item => {
+        const row = document.createElement('div');
+        row.className = 'skin-row';
+        row.innerHTML = `
+          <img src="${item.image}" alt="${item.name}">
+          <div class="skin-info">
+            <div class="skin-name" style="color:${RARITIES[item.rarity].color}">${item.name}</div>
+            <div class="skin-meta">${RARITIES[item.rarity].label} — Base $${item.price.toFixed(2)}</div>
+          </div>
+        `;
+        row.addEventListener('click', () => {
+          document.querySelectorAll('.skin-row').forEach(r => r.style.borderColor = 'transparent');
+          row.style.borderColor = RARITIES[item.rarity].color;
+          pickedSkin = { ...item, caseName: CASES[caseIdx].name };
+          updatePreview();
+        });
+        skinListEl.appendChild(row);
+      });
+    }
+
+    // ── Wear buttons ──
+    WEAR_TIERS.forEach((tier, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'wear-btn';
+      btn.textContent = tier.abbr;
+      btn.style.color = tier.color;
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.wear-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        pickedWearIdx = i;
+        updatePreview();
+      });
+      wearButtonsEl.appendChild(btn);
+    });
+    // Default to FN
+    document.querySelectorAll('.wear-btn')[0].classList.add('active');
+    pickedWearIdx = 0;
+
+    // ── Preview ──
+    function updatePreview() {
+      if (!pickedSkin) {
+        previewEl.innerHTML = '<div style="color:#64748b;font-size:0.8rem;">No skin selected</div>';
+        addBtn.disabled = true;
+        return;
+      }
+      const tier = WEAR_TIERS[pickedWearIdx];
+      const price = Math.round(pickedSkin.price * tier.multiplier * 100) / 100;
+      previewEl.innerHTML = `
+        <img src="${pickedSkin.image}" alt="${pickedSkin.name}">
+        <div class="name" style="color:${RARITIES[pickedSkin.rarity].color}">${pickedSkin.name}</div>
+        <div class="meta">${tier.name} (${tier.abbr}) — $${price.toFixed(2)}</div>
+      `;
+      addBtn.disabled = false;
+    }
+
+    // ── Add to inventory ──
+    addBtn.addEventListener('click', () => {
+      if (!pickedSkin) return;
+      const tier = WEAR_TIERS[pickedWearIdx];
+      const float = tier.min + Math.random() * (tier.max - tier.min);
+      const pattern = Math.floor(Math.random() * 1000) + 1;
+      const adjustedPrice = Math.round(pickedSkin.price * tier.multiplier * 100) / 100;
+
+      const item = {
+        ...pickedSkin,
+        float: Math.round(float * 10000) / 10000,
+        wear: tier.name,
+        wearAbbr: tier.abbr,
+        wearColor: tier.color,
+        pattern,
+        price: adjustedPrice,
+        basePrice: pickedSkin.price,
+      };
+      if (stattrakCheck.checked && !isGloveItem(item)) {
+        item.stattrak = true;
+        item.price = Math.round(item.price * STATTRAK_MULTIPLIER * 100) / 100;
+      }
+
+      inventory.push(item);
+      saveState();
+      showToast(`Added ${stName(item)} (${item.wearAbbr}) to inventory!`);
+    });
+
+    // ── Set Balance ──
+    setBalanceBtn.addEventListener('click', () => {
+      const val = parseFloat(balanceInput.value);
+      if (isNaN(val) || val < 0) return;
+      balance = Math.round(val * 100) / 100;
+      updateBalance();
+      saveState();
+      showToast(`Balance set to $${balance.toFixed(2)}`);
+      balanceInput.value = '';
+    });
+
+    // ── Init ──
+    updateBalance();
+  </script>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trade Up Contract - CS:GO Case Opening</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <header>
+      <h1>CS:GO CASE OPENING</h1>
+      <nav class="header-nav">
+        <a href="index.html" class="nav-link">CASES</a>
+        <a href="tradeup.html" class="nav-link active">TRADE UP</a>
+        <a href="inventory.html" class="nav-link">INVENTORY</a>
+      </nav>
+      <div class="balance-group">
+        <div class="balance">Balance: $<span id="balance">1000.00</span></div>
+        <div class="inv-value-header">Inventory: $<span id="invValue">0.00</span></div>
+      </div>
+    </header>
+
+    <div class="pl-tracker" id="plTracker"></div>
+
+    <div class="tradeup-section">
+      <h2>TRADE UP CONTRACT</h2>
+      <p class="tradeup-desc">Select items of the same rarity to trade up for 1 item of the next tier. Covert items need 5, others need 10.</p>
+
+      <div class="tradeup-slots" id="tradeupSlots"></div>
+
+      <div class="tradeup-arrow">▼ TRADE UP ▼</div>
+
+      <div class="tradeup-output-preview" id="tradeupOutputPreview">
+        <span class="tradeup-output-label">Result rarity:</span>
+        <span class="tradeup-output-rarity" id="tradeupOutputRarity">—</span>
+      </div>
+
+      <div class="tradeup-info" id="tradeupInfo">
+        <span id="tradeupCount">0</span>/<span id="tradeupRequired">10</span> items selected
+        <span class="tradeup-rarity" id="tradeupRarity"></span>
+      </div>
+
+      <div class="tradeup-controls">
+        <button id="tradeupBtn" class="btn btn-tradeup" disabled>TRADE UP</button>
+        <button id="tradeupClearBtn" class="btn btn-back">CLEAR</button>
+      </div>
+
+      <div class="tradeup-result" id="tradeupResult" style="display:none;">
+        <h3>YOU RECEIVED</h3>
+        <div class="won-item-card" id="tradeupResultCard"></div>
+      </div>
+    </div>
+
+    <div class="inventory-section">
+      <h2>YOUR ITEMS <span class="inv-value">Total Value: $<span id="invValueInline">0.00</span></span></h2>
+      <p class="tradeup-inv-hint">Click an item to add it to the trade-up contract.</p>
+      <div class="inv-sort-controls">
+        <label>Sort by:</label>
+        <select id="sortBy">
+          <option value="newest">Newest</option>
+          <option value="rarity-desc">Rarity ▼</option>
+          <option value="rarity-asc">Rarity ▲</option>
+          <option value="float-asc">Float ▲</option>
+          <option value="float-desc">Float ▼</option>
+          <option value="price-desc">Price ▼</option>
+          <option value="price-asc">Price ▲</option>
+        </select>
+      </div>
+      <div class="inventory" id="inventory"></div>
+    </div>
+  </div>
+
+  <script src="tradeup.js"></script>
+</body>
+</html>

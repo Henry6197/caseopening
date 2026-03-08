@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inventory - CS:GO Case Opening Simulator</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <header>
+      <h1>CS:GO CASE OPENING</h1>
+      <nav class="header-nav">
+        <a href="index.html" class="nav-link">CASES</a>
+        <a href="tradeup.html" class="nav-link">TRADE UP</a>
+        <a href="inventory.html" class="nav-link active">INVENTORY</a>
+      </nav>
+      <div class="balance-group">
+        <div class="balance">Balance: $<span id="balance">1000.00</span></div>
+        <div class="inv-value-header">Inventory: $<span id="invValue">0.00</span></div>
+      </div>
+    </header>
+
+    <div class="pl-tracker" id="plTracker"></div>
+
+    <div class="inventory-section">
+      <h2>INVENTORY</h2>
+      <div class="inv-controls">
+        <div class="inv-sort-controls">
+          <label>Sort by:</label>
+          <select id="sortBy">
+            <option value="newest">Newest</option>
+            <option value="rarity-desc">Rarity ▼</option>
+            <option value="rarity-asc">Rarity ▲</option>
+            <option value="float-asc">Float ▲</option>
+            <option value="float-desc">Float ▼</option>
+            <option value="price-desc">Price ▼</option>
+            <option value="price-asc">Price ▲</option>
+          </select>
+        </div>
+        <input type="text" id="invSearch" class="case-search" placeholder="Search inventory..." style="max-width:300px;margin:0;">
+        <button id="sellAllBtn" class="btn btn-sell-all">SELL ALL</button>
+      </div>
+      <div class="inventory" id="inventory"></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    // ─── Inventory Page Logic ─────────────────────────────────
+    const inventoryEl = document.getElementById('inventory');
+    const sortByEl = document.getElementById('sortBy');
+    const invSearchEl = document.getElementById('invSearch');
+    const sellAllBtn = document.getElementById('sellAllBtn');
+
+    let currentSort = 'newest';
+
+    function getSortedInventory() {
+      const indexed = inventory.map((item, i) => ({ item, realIdx: i }));
+      switch (currentSort) {
+        case 'rarity-desc':
+          indexed.sort((a, b) => RARITY_ORDER.indexOf(b.item.rarity) - RARITY_ORDER.indexOf(a.item.rarity));
+          break;
+        case 'rarity-asc':
+          indexed.sort((a, b) => RARITY_ORDER.indexOf(a.item.rarity) - RARITY_ORDER.indexOf(b.item.rarity));
+          break;
+        case 'float-asc':
+          indexed.sort((a, b) => a.item.float - b.item.float);
+          break;
+        case 'float-desc':
+          indexed.sort((a, b) => b.item.float - a.item.float);
+          break;
+        case 'price-desc':
+          indexed.sort((a, b) => b.item.price - a.item.price);
+          break;
+        case 'price-asc':
+          indexed.sort((a, b) => a.item.price - b.item.price);
+          break;
+        default:
+          indexed.reverse();
+      }
+      return indexed;
+    }
+
+    function renderInventory() {
+      inventoryEl.innerHTML = '';
+      if (inventory.length === 0) {
+        inventoryEl.innerHTML = '<div class="inventory-empty">Your inventory is empty. Open some cases!</div>';
+        updateHeaderInvValue();
+        return;
+      }
+
+      updateHeaderInvValue();
+
+      const q = (invSearchEl.value || '').toLowerCase();
+      const sorted = getSortedInventory();
+      let shown = 0;
+
+      sorted.forEach(({ item, realIdx }) => {
+        if (q && !item.name.toLowerCase().includes(q) && !(item.caseName || '').toLowerCase().includes(q) && !(item.stattrak && 'stattrak'.includes(q))) return;
+        shown++;
+        const el = document.createElement('div');
+        el.className = `inv-item rarity-${item.rarity}`;
+        el.innerHTML = `
+          ${item.stattrak ? '<div class="stattrak-label">StatTrak\u2122</div>' : ''}
+          <img class="item-icon" src="${item.image}" alt="${stName(item)}">
+          <div class="item-name" style="color:${RARITIES[item.rarity].color}">${stName(item)}</div>
+          <div class="inv-wear" style="color:${item.wearColor}">${item.wearAbbr} · ${item.float.toFixed(4)}</div>
+          ${floatBarHTML(item.float, true)}
+          <div class="inv-pattern">Pattern #${item.pattern}</div>
+          <div class="inv-case" style="color:#64748b;font-size:0.7rem">${item.caseName || ''}</div>
+          <div class="item-price">$${item.price.toFixed(2)}</div>
+          <button class="sell-btn">SELL</button>
+        `;
+        el.querySelector('.sell-btn').addEventListener('click', (e) => {
+          e.stopPropagation();
+          balance += inventory[realIdx].price;
+          updateBalance();
+          inventory.splice(realIdx, 1);
+          renderInventory();
+          saveState();
+        });
+        inventoryEl.appendChild(el);
+      });
+
+      if (shown === 0 && q) {
+        inventoryEl.innerHTML = '<div class="inventory-empty">No items match your search.</div>';
+      }
+    }
+
+    function updateHeaderInvValue() {
+      const totalValue = inventory.reduce((s, i) => s + (i.price || 0), 0);
+      document.getElementById('invValue').textContent = totalValue.toFixed(2);
+    }
+
+    sortByEl.addEventListener('change', () => {
+      currentSort = sortByEl.value;
+      renderInventory();
+    });
+
+    invSearchEl.addEventListener('input', () => renderInventory());
+
+    sellAllBtn.addEventListener('click', () => {
+      if (inventory.length === 0) return;
+      if (!confirm(`Sell all ${inventory.length} items for $${inventory.reduce((s,i) => s + i.price, 0).toFixed(2)}?`)) return;
+      const total = inventory.reduce((s, i) => s + i.price, 0);
+      balance += total;
+      inventory.length = 0;
+      updateBalance();
+      renderInventory();
+      saveState();
+    });
+
+    // Init
+    updateBalance();
+    renderInventory();
+  </script>
+</body>
+</html>

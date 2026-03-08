@@ -10,13 +10,22 @@
   <div id="app">
     <header>
       <h1>CS:GO CASE OPENING</h1>
-      <div class="balance">
-        Balance: $<span id="balance">1000.00</span>
+      <nav class="header-nav">
+        <a href="index.html" class="nav-link active">CASES</a>
+        <a href="tradeup.html" class="nav-link">TRADE UP</a>
+        <a href="inventory.html" class="nav-link">INVENTORY</a>
+      </nav>
+      <div class="balance-group">
+        <div class="balance">Balance: $<span id="balance">1000.00</span></div>
+        <div class="inv-value-header">Inventory: $<span id="invValue">0.00</span></div>
       </div>
     </header>
 
+    <div class="pl-tracker" id="plTracker"></div>
+
     <div class="case-select">
       <h2>SELECT A CASE</h2>
+      <input type="text" id="caseSearch" class="case-search" placeholder="Search cases...">
       <div class="cases" id="cases"></div>
     </div>
 
@@ -42,10 +51,7 @@
       </div>
     </div>
 
-    <div class="inventory-section">
-      <h2>INVENTORY <span class="inv-value">Total Value: $<span id="invValue">0.00</span></span></h2>
-      <div class="inventory" id="inventory"></div>
-    </div>
+
   </div>
 
   <script src="app.js"></script>
