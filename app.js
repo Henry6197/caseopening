@@ -41,7 +41,7 @@ function rollFloat() {
   }
   const tier = WEAR_TIERS[tierIdx];
   const float = tier.min + Math.random() * (tier.max - tier.min);
-  return { float: Math.round(float * 10000) / 10000, tier };
+  return { float: Math.round(float * 10000000000) / 10000000000, tier };
 }
 
 function rollPattern() {
@@ -3113,7 +3113,7 @@ openBtn.addEventListener('click', () => {
       <div class="won-wear" style="color:${winItem.wearColor}">${winItem.wear}</div>
       ${floatBarHTML(winItem.float, false)}
       <div class="won-details">
-        <span>Float: ${winItem.float.toFixed(4)}</span>
+        <span>Float: ${winItem.float.toFixed(10)}</span>
         <span>Pattern: #${winItem.pattern}</span>
       </div>
       <div class="item-price" style="color:${RARITIES[winItem.rarity].color}">$${winItem.price.toFixed(2)}</div>

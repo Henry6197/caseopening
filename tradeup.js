@@ -2858,7 +2858,7 @@ function rollFloat() {
   }
   const tier = WEAR_TIERS[tierIdx];
   const float = tier.min + Math.random() * (tier.max - tier.min);
-  return { float: Math.round(float * 10000) / 10000, tier };
+  return { float: Math.round(float * 10000000000) / 10000000000, tier };
 }
 
 function rollPattern() {
@@ -3147,7 +3147,7 @@ function executeTradeup() {
 
   // Bias the output float toward the average input float
   const outputFloat = Math.min(Math.max(avgFloat + (Math.random() - 0.5) * 0.2, 0.0001), 0.9999);
-  const roundedFloat = Math.round(outputFloat * 10000) / 10000;
+  const roundedFloat = Math.round(outputFloat * 10000000000) / 10000000000;
 
   // Determine wear tier from float
   let outputTier = WEAR_TIERS[2]; // default FT
@@ -3193,7 +3193,7 @@ function executeTradeup() {
     <div class="won-wear" style="color:${wonItem.wearColor}">${wonItem.wear}</div>
     ${floatBarHTML(wonItem.float, false)}
     <div class="won-details">
-      <span>Float: ${wonItem.float.toFixed(4)}</span>
+      <span>Float: ${wonItem.float.toFixed(10)}</span>
       <span>Pattern: #${wonItem.pattern}</span>
     </div>
     <div class="item-price" style="color:${RARITIES[wonItem.rarity].color}">$${wonItem.price.toFixed(2)}</div>
@@ -3239,7 +3239,7 @@ function renderInventory() {
       ${item.stattrak ? '<div class="stattrak-label">StatTrak\u2122</div>' : ''}
       <img class="item-icon" src="${item.image}" alt="${stName(item)}">
       <div class="item-name" style="color:${RARITIES[item.rarity].color}">${stName(item)}</div>
-      <div class="inv-wear" style="color:${item.wearColor}">${item.wearAbbr} · ${item.float.toFixed(4)}</div>
+      <div class="inv-wear" style="color:${item.wearColor}">${item.wearAbbr} · ${item.float.toFixed(10)}</div>
       ${floatBarHTML(item.float, true)}
       <div class="inv-pattern">Pattern #${item.pattern}</div>
       <div class="item-price">$${item.price.toFixed(2)}</div>

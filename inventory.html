@@ -105,7 +105,7 @@
           ${item.stattrak ? '<div class="stattrak-label">StatTrak\u2122</div>' : ''}
           <img class="item-icon" src="${item.image}" alt="${stName(item)}">
           <div class="item-name" style="color:${RARITIES[item.rarity].color}">${stName(item)}</div>
-          <div class="inv-wear" style="color:${item.wearColor}">${item.wearAbbr} · ${item.float.toFixed(4)}</div>
+          <div class="inv-wear" style="color:${item.wearColor}">${item.wearAbbr} · ${item.float.toFixed(10)}</div>
           ${floatBarHTML(item.float, true)}
           <div class="inv-pattern">Pattern #${item.pattern}</div>
           <div class="inv-case" style="color:#64748b;font-size:0.7rem">${item.caseName || ''}</div>
