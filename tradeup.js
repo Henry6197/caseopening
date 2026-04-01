@@ -2901,10 +2901,24 @@ let inventory = JSON.parse(localStorage.getItem('inventory')) ?? [];
 let tradeupSlots = []; // items selected for trade-up (indices into inventory)
 let tradeupRarity = null; // locked rarity once first item is added
 let tradeupStattrak = null; // locked stattrak status once first item is added
+const DEFAULT_STATS = {
+  spent: 0,
+  earned: 0,
+  opened: 0,
+  tradeups: 0,
+  tradeupCost: 0,
+  tradeupEarned: 0,
+};
+const storedStats = JSON.parse(localStorage.getItem('stats'));
+const stats = {
+  ...DEFAULT_STATS,
+  ...(storedStats && typeof storedStats === 'object' ? storedStats : {}),
+};
 
 function saveState() {
   localStorage.setItem('balance', JSON.stringify(balance));
   localStorage.setItem('inventory', JSON.stringify(inventory));
+  localStorage.setItem('stats', JSON.stringify(stats));
 }
 
 // ─── DOM refs ─────────────────────────────────────────────────
@@ -3136,6 +3150,12 @@ function executeTradeup() {
   const outputPool = getOutputPool(nextRarity);
   if (outputPool.length === 0) return;
 
+  // Trade-up cost is the total market value of all input items.
+  const tradeupCost = tradeupSlots.reduce((sum, idx) => {
+    const item = inventory[idx];
+    return sum + (item?.price || 0);
+  }, 0);
+
   // Pick a random item from the pool and apply float
   const baseItem = outputPool[Math.floor(Math.random() * outputPool.length)];
 
@@ -3172,6 +3192,10 @@ function executeTradeup() {
     stattrak: !!tradeupStattrak,
   };
   if (wonItem.stattrak) wonItem.price = Math.round(wonItem.price * STATTRAK_MULTIPLIER * 100) / 100;
+
+  stats.tradeups += 1;
+  stats.tradeupCost += tradeupCost;
+  stats.tradeupEarned += wonItem.price;
 
   // Remove input items from inventory (sort indices descending to avoid shifting)
   const sortedIndices = [...tradeupSlots].sort((a, b) => b - a);
@@ -3298,19 +3322,33 @@ tradeupClearBtn.addEventListener('click', clearTradeup);
 
 // ─── Profit / Loss Display ────────────────────────────────────
 
-const stats = JSON.parse(localStorage.getItem('stats')) ?? { spent: 0, earned: 0, opened: 0 };
-
 function updatePLDisplay() {
   const el = document.getElementById('plTracker');
   if (!el) return;
-  const net = stats.earned - stats.spent;
-  const cls = net >= 0 ? 'pl-pos' : 'pl-neg';
+  const tradeupNet = stats.tradeupEarned - stats.tradeupCost;
+  const tradeupCls = tradeupNet >= 0 ? 'pl-pos' : 'pl-neg';
   el.innerHTML = `
-    <span class="pl-stat">Opened: <b>${stats.opened}</b></span>
-    <span class="pl-stat">Spent: <b>$${stats.spent.toFixed(2)}</b></span>
-    <span class="pl-stat">Earned: <b>$${stats.earned.toFixed(2)}</b></span>
-    <span class="pl-stat ${cls}">P/L: <b>${net >= 0 ? '+' : ''}$${net.toFixed(2)}</b></span>
+    <span class="pl-stat">Tradeups: <b>${stats.tradeups}</b></span>
+    <span class="pl-stat">Tradeup Cost: <b>$${stats.tradeupCost.toFixed(2)}</b></span>
+    <span class="pl-stat">Tradeup Returned: <b>$${stats.tradeupEarned.toFixed(2)}</b></span>
+    <span class="pl-stat ${tradeupCls}">Tradeup P/L: <b>${tradeupNet >= 0 ? '+' : ''}$${tradeupNet.toFixed(2)}</b></span>
+    <button type="button" class="reset-stats-btn" id="resetStatsBtn">Reset Stats</button>
   `;
+
+  const resetBtn = document.getElementById('resetStatsBtn');
+  if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+      if (!confirm('Reset all stats?')) return;
+      stats.spent = 0;
+      stats.earned = 0;
+      stats.opened = 0;
+      stats.tradeups = 0;
+      stats.tradeupCost = 0;
+      stats.tradeupEarned = 0;
+      saveState();
+      updatePLDisplay();
+    });
+  }
 }
 
 // ─── Init ─────────────────────────────────────────────────────

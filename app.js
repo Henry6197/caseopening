@@ -2906,7 +2906,19 @@ let balance = JSON.parse(localStorage.getItem('balance')) ?? 1000;
 let inventory = JSON.parse(localStorage.getItem('inventory')) ?? [];
 let selectedCase = null;
 let isSpinning = false;
-let stats = JSON.parse(localStorage.getItem('stats')) ?? { spent: 0, earned: 0, opened: 0 };
+const DEFAULT_STATS = {
+  spent: 0,
+  earned: 0,
+  opened: 0,
+  tradeups: 0,
+  tradeupCost: 0,
+  tradeupEarned: 0,
+};
+const storedStats = JSON.parse(localStorage.getItem('stats'));
+let stats = {
+  ...DEFAULT_STATS,
+  ...(storedStats && typeof storedStats === 'object' ? storedStats : {}),
+};
 
 function saveState() {
   localStorage.setItem('balance', JSON.stringify(balance));
@@ -3220,14 +3232,30 @@ function updateHeaderInvValue() {
 function updatePLDisplay() {
   const el = document.getElementById('plTracker');
   if (!el) return;
-  const net = stats.earned - stats.spent;
-  const cls = net >= 0 ? 'pl-pos' : 'pl-neg';
+  const caseNet = stats.earned - stats.spent;
+  const caseCls = caseNet >= 0 ? 'pl-pos' : 'pl-neg';
   el.innerHTML = `
     <span class="pl-stat">Opened: <b>${stats.opened}</b></span>
     <span class="pl-stat">Spent: <b>$${stats.spent.toFixed(2)}</b></span>
     <span class="pl-stat">Earned: <b>$${stats.earned.toFixed(2)}</b></span>
-    <span class="pl-stat ${cls}">P/L: <b>${net >= 0 ? '+' : ''}$${net.toFixed(2)}</b></span>
+    <span class="pl-stat ${caseCls}">Case P/L: <b>${caseNet >= 0 ? '+' : ''}$${caseNet.toFixed(2)}</b></span>
+    <button type="button" class="reset-stats-btn" id="resetStatsBtn">Reset Stats</button>
   `;
+
+  const resetBtn = document.getElementById('resetStatsBtn');
+  if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+      if (!confirm('Reset all stats?')) return;
+      stats.spent = 0;
+      stats.earned = 0;
+      stats.opened = 0;
+      stats.tradeups = 0;
+      stats.tradeupCost = 0;
+      stats.tradeupEarned = 0;
+      updatePLDisplay();
+      saveState();
+    });
+  }
 }
 
 // ─── Init ─────────────────────────────────────────────────────
